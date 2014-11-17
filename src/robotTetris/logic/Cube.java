@@ -7,14 +7,18 @@ import robotTetris.basic.Point3D;
  */
 public class Cube {
     private Point3D location;
-    private static final int width = 1;
+    public static final int width = 50;
     private static final int basicFallDownDistance=1;
 
-    public void fallDown(){
-
+    public Cube(Point3D location){
+        this.location = location;
     }
 
-    private int getWidth(){
+    public void fallDown(){
+        --this.location.y;
+    }
+
+    public int getWidth(){
         return width;
     }
 
