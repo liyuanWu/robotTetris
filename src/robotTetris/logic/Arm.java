@@ -1,9 +1,9 @@
-package robotTetris.logic;
+package logic;
 
-import robotTetris.basic.Point3D;
-
+import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Vector;
+
+import basic.Point3D;
 
 /**
  * Created by leowoo on 2014/11/5.
@@ -14,9 +14,9 @@ public class Arm {
 
 	private static Arm self;
 	
-    private final int BASE_ARM_LENGTH = 350;
-    private final int HEAD_ARM_LENGTH = 250;
-    private final int ARM_WIDTH = 1;
+    private final int BASE_ARM_LENGTH = 8;
+    private final int HEAD_ARM_LENGTH = 5;
+    private final double ARM_WIDTH = 0.5;
     
     private final double BASIC_ROTATE_ANGLE = 2*Math.PI/360;
     
@@ -33,220 +33,86 @@ public class Arm {
     private Arm() {
     	
     	angleBase = angleHead = Math.PI/2;
-    	mid = new Point3D(0, BASE_ARM_LENGTH, 0);
-    	head = new Point3D(0, BASE_ARM_LENGTH + HEAD_ARM_LENGTH, 0);
+    	mid = new Point3D(0, BASE_ARM_LENGTH * Cube.WIDTH, 0);
+    	head = new Point3D(0, (BASE_ARM_LENGTH + HEAD_ARM_LENGTH) * Cube.WIDTH, 0);
     }
 
     public boolean isCollision(Cube cube){
     	
     	Point3D cubeCorner = cube.getLocation();
-    	int x1 = cubeCorner.x;
-    	int y1 = cubeCorner.y;
-    	int width = cube.getWidth();
-    	int x2 = x1 + width;
-    	int y2 = y1 + width;
+    	float x1 = cubeCorner.x;
+    	float y1 = cubeCorner.y;
+    	float width = Cube.WIDTH;
+    	float x2 = x1 + width;
+    	float y2 = y1 + width;
     	
     	boolean isBaseCollision = isCollision(0, 0, mid.x, mid.y, x1, y1, x2, y2);
     	boolean isHeadCollision = isCollision(mid.x, mid.y, head.x, head.y, x1, y1, x2, y2);
         return (isBaseCollision || isHeadCollision);
     }
 
-    public boolean rotateLeftBaseArm(){
+    public ArrayList<Integer> rotateLeftBaseArm(){
     	
     	angleBase += BASIC_ROTATE_ANGLE;
-    	int x = (int) (BASE_ARM_LENGTH * Math.cos(angleBase));
-    	int y = (int) (BASE_ARM_LENGTH * Math.sin(angleBase));
-    	Point3D tmpmid = new Point3D(x, y, 0);
+    	float x = (float) (BASE_ARM_LENGTH * Cube.WIDTH * Math.cos(angleBase));
+    	float y = (float) (BASE_ARM_LENGTH * Cube.WIDTH * Math.sin(angleBase));
+    	mid = new Point3D(x, y, 0);
 
     	angleHead += BASIC_ROTATE_ANGLE;
-    	x = (int) (HEAD_ARM_LENGTH * Math.cos(angleHead));
-    	y = (int) (HEAD_ARM_LENGTH * Math.sin(angleHead));
-    	Point3D tmphead = new Point3D(x + mid.x, y + mid.y, 0);
+    	x = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.cos(angleHead));
+    	y = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.sin(angleHead));
+    	head = new Point3D(x + mid.x, y + mid.y, 0);
     	
-    	Vector<ArrayList<Cube>> pile = World.getInstance().getPile();
-    	int size = pile.size();
-    	boolean isCollision = false;
-    	for (int i=0; i<size; i++) {
-    		
-    		ArrayList<Cube> list = pile.get(i);
+    	ArrayList<Integer> res = getCollisionFallingCube(mid, head);
+    	return res;
+    }
 
-            int height = list.size();
-            if (height != 0){
-                Cube top = list.get(list.size()-1);
-                Point3D location = top.getLocation();
-                int x1 = location.x;
-                int y1 = location.y;
-                int width = top.getWidth();
-                int x2 = x1 + width;
-                int y2 = y1 + width;
-
-                boolean isBaseCollision = isCollision(0, 0, mid.x, mid.y, x1, y1, x2, y2);
-                boolean isHeadCollision = isCollision(mid.x, mid.y, head.x, head.y, x1, y1, x2, y2);
-
-                if (isBaseCollision || isHeadCollision) {
-                    isCollision = true;
-                    break;
-                }
-            }
-
-
-
-    	}
-    	if (!isCollision){
-    			mid = tmpmid;
-    			head = tmphead;
-    			return true;
-    		}
+    public ArrayList<Integer> rotateRightBaseArm(){
     	
     	angleBase -= BASIC_ROTATE_ANGLE;
+    	float x = (float) (BASE_ARM_LENGTH * Cube.WIDTH * Math.cos(angleBase));
+    	float y = (float) (BASE_ARM_LENGTH * Cube.WIDTH * Math.sin(angleBase));
+    	mid = new Point3D(x, y, 0);
+
     	angleHead -= BASIC_ROTATE_ANGLE;
-        return false;
+    	x = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.cos(angleHead));
+    	y = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.sin(angleHead));
+    	head = new Point3D(x + mid.x, y + mid.y, 0);
+    	
+    	ArrayList<Integer> res = getCollisionFallingCube(mid, head);
+    	return res;
     }
 
-    public boolean rotateRightBaseArm(){
+    public ArrayList<Integer> rotateLeftHeadArm(){
     	
-    	angleBase -= BASIC_ROTATE_ANGLE;
-    	int x = (int) (BASE_ARM_LENGTH * Math.cos(angleBase));
-    	int y = (int) (BASE_ARM_LENGTH * Math.sin(angleBase));
-    	Point3D tmpmid = new Point3D(x, y, 0);
-
-    	angleHead -= BASIC_ROTATE_ANGLE;
-    	x = (int) (HEAD_ARM_LENGTH * Math.cos(angleHead));
-    	y = (int) (HEAD_ARM_LENGTH * Math.sin(angleHead));
-    	Point3D tmphead = new Point3D(x + mid.x, y + mid.y, 0);
-    	
-    	Vector<ArrayList<Cube>> pile = World.getInstance().getPile();
-    	int size = pile.size();
-    	boolean isCollision = false;
-    	for (int i=0; i<size; i++) {
-    		
-    		ArrayList<Cube> list = pile.get(i);
-            int height = list.size();
-            if (height != 0) {
-                Cube top = list.get(list.size() - 1);
-
-                Point3D location = top.getLocation();
-                int x1 = location.x;
-                int y1 = location.y;
-                int width = top.getWidth();
-                int x2 = x1 + width;
-                int y2 = y1 + width;
-
-                boolean isBaseCollision = isCollision(0, 0, mid.x, mid.y, x1, y1, x2, y2);
-                boolean isHeadCollision = isCollision(mid.x, mid.y, head.x, head.y, x1, y1, x2, y2);
-
-                if (isBaseCollision || isHeadCollision){
-                    isCollision = true;
-                    break;
-                }
-            }
-    	}
-    	if (!isCollision)
-            if ((tmphead.x < World.WIDTH * Cube.width) && (tmphead.y > 0)) {
-    			mid = tmpmid;
-    			head = tmphead;
-    			return true;
-    		}
-
-    	angleBase += BASIC_ROTATE_ANGLE;
     	angleHead += BASIC_ROTATE_ANGLE;
-        return false;
+    	float x = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.cos(angleHead));
+    	float y = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.sin(angleHead));
+    	head = new Point3D(x + mid.x, y + mid.y, 0);
+    	
+    	ArrayList<Integer> res = getCollisionFallingCube(mid, head);
+    	return res;
     }
 
-    public boolean rotateLeftHeadArm(){
-    	
-    	angleHead += BASIC_ROTATE_ANGLE;
-    	int x = (int) (HEAD_ARM_LENGTH * Math.cos(angleHead));
-    	int y = (int) (HEAD_ARM_LENGTH * Math.sin(angleHead));
-    	Point3D tmphead = new Point3D(x + mid.x, y + mid.y, 0);
-    	
-    	Vector<ArrayList<Cube>> pile = World.getInstance().getPile();
-    	int size = pile.size();
-    	boolean isCollision = false;
-    	for (int i=0; i<size; i++) {
-    		
-    		ArrayList<Cube> list = pile.get(i);int height = list.size();
-            if (height != 0) {
-                Cube top = list.get(list.size() - 1);
-
-                Point3D location = top.getLocation();
-                int x1 = location.x;
-                int y1 = location.y;
-                int width = top.getWidth();
-                int x2 = x1 + width;
-                int y2 = y1 + width;
-
-                boolean isBaseCollision = isCollision(0, 0, mid.x, mid.y, x1, y1, x2, y2);
-                boolean isHeadCollision = isCollision(mid.x, mid.y, head.x, head.y, x1, y1, x2, y2);
-
-                if (isBaseCollision || isHeadCollision) {
-                    isCollision = true;
-                    break;
-                }
-            }
-    	}
-    	if (!isCollision){
-    			head = tmphead;
-    			return true;
-    		}
-
-    	angleHead -= BASIC_ROTATE_ANGLE;
-        return false;
-    }
-
-    public boolean rotateRightHeadArm(){
+    public ArrayList<Integer> rotateRightHeadArm(){
     	
     	angleHead -= BASIC_ROTATE_ANGLE;
-    	int x = (int) (HEAD_ARM_LENGTH * Math.cos(angleHead));
-    	int y = (int) (HEAD_ARM_LENGTH * Math.sin(angleHead));
-    	Point3D tmphead = new Point3D(x + mid.x, y + mid.y, 0);
+    	float x = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.cos(angleHead));
+    	float y = (float) (HEAD_ARM_LENGTH * Cube.WIDTH * Math.sin(angleHead));
+    	head = new Point3D(x + mid.x, y + mid.y, 0);
     	
-    	Vector<ArrayList<Cube>> pile = World.getInstance().getPile();
-    	int size = pile.size();
-    	boolean isCollision = false;
-    	for (int i=0; i<size; i++) {
-
-    		ArrayList<Cube> list = pile.get(i);
-            int height = list.size();
-            if (height != 0) {
-                Cube top = list.get(list.size() - 1);
-
-                Point3D location = top.getLocation();
-                int x1 = location.x;
-                int y1 = location.y;
-                int width = top.getWidth();
-                int x2 = x1 + width;
-                int y2 = y1 + width;
-
-                boolean isBaseCollision = isCollision(0, 0, mid.x, mid.y, x1, y1, x2, y2);
-                boolean isHeadCollision = isCollision(mid.x, mid.y, head.x, head.y, x1, y1, x2, y2);
-
-                if (isBaseCollision || isHeadCollision) {
-                    isCollision = true;
-                    break;
-                }
-            }
-    	}
-    	if (!isCollision)
-            if ((tmphead.x < World.WIDTH * Cube.width) && (tmphead.y > 0)) {
-                head = tmphead;
-                return true;
-        }
-
-    	angleHead += BASIC_ROTATE_ANGLE;
-        return false;
+    	ArrayList<Integer> res = getCollisionFallingCube(mid, head);
+    	return res;
     }
 
     public Point3D getHeadPosition(){
-    	
         return head;
     }
 
     public Point3D getMidPosition(){
-    	
         return mid;
     }
-
+    
     public int getBaseArmLength() {
     	
         return BASE_ARM_LENGTH;
@@ -257,26 +123,40 @@ public class Arm {
         return HEAD_ARM_LENGTH;
     }
 
-    public int getArmWidth() {
+    public double getArmWidth() {
     	
         return ARM_WIDTH;
     }
     
-    private boolean isCollision(int lineX1, int lineY1, int lineX2, int lineY2,
-    		int areaX1, int areaY1, int areaX2, int areaY2) {
+    private ArrayList<Integer> getCollisionFallingCube(Point3D tmpMid, Point3D tmpHead) {
     	
-    	boolean[] head = new boolean[4];
-    	boolean[] tail = new boolean[4];
+    	ArrayList<Integer> res = new ArrayList<Integer>();
+    	ArrayList<Cube> list = World.getInstance().getFallingCubes();
+    	int size = list.size();
+    	for (int i=0; i<size; i++) {
+    		
+    		Cube cube = list.get(i);
+
+    		Point3D location = cube.getLocation();
+        	float x1 = location.x;
+        	float y1 = location.y;
+        	float width = Cube.WIDTH;
+        	float x2 = x1 + width;
+        	float y2 = y1 + width;
+        	
+    		boolean isBaseCollision = isCollision(0, 0, tmpMid.x, tmpMid.y, x1, y1, x2, y2);
+        	boolean isHeadCollision = isCollision(tmpMid.x, tmpMid.y, tmpHead.x, tmpHead.y, x1, y1, x2, y2);
+        	
+        	if (isBaseCollision || isHeadCollision)
+        		res.add(i);
+    	}
+    	return res;
+    }
+    
+    private boolean isCollision(float lineX1, float lineY1, float lineX2, float lineY2,
+    		float areaX1, float areaY1, float areaX2, float areaY2) {
     	
-    	head[0] = (lineX1 < areaX1);
-    	head[1] = (lineX1 > areaX2);
-    	head[2] = (lineY1 < areaY1);
-    	head[3] = (lineY1 > areaY2);
-    	
-    	tail[0] = (lineX2 < areaX1);
-    	tail[1] = (lineX2 > areaX2);
-    	tail[2] = (lineY2 < areaY1);
-    	tail[3] = (lineY2 > areaY2);
-		return false;
+    	Rectangle rect = new Rectangle((int)areaX1, (int)areaY1, (int)areaX2, (int)areaY2);
+    	return rect.intersectsLine(lineX1, lineY1, lineX2, lineY2);
     }
 }

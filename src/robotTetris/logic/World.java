@@ -1,6 +1,7 @@
-package robotTetris.logic;
+package logic;
 
-import robotTetris.basic.Point3D;
+import basic.Point3D;
+import controller.Controller;
 
 import java.util.*;
 
@@ -10,8 +11,8 @@ import java.util.*;
 public class World {
 
 
-    public static final int HEIGHT = 30;
-    public static final int WIDTH = 10;
+    public static final int HEIGHT = 10;
+    public static final int WIDTH = 8;
     //refresh interval in second
     public static final float REFRESHINTERVAL= 1F;
 
@@ -19,8 +20,11 @@ public class World {
     private Vector<ArrayList<Cube>> pile ;
 
     private ArrayList<Cube> fallingCubes;
+    private ArrayList<Cube> dynamite;
 
     private static World instance;
+
+    private int durationOfNonFallingCubes = 0;
 
     public static World getInstance() {
         if (World.instance == null) {
@@ -32,9 +36,11 @@ public class World {
     public World(){
         this.pile = new Vector<ArrayList<Cube>>(WIDTH);
         for(int i=0;i<WIDTH;i++){
-            this.pile.add(new ArrayList<Cube>(HEIGHT));
+        	ArrayList<Cube> list = new ArrayList<Cube>(HEIGHT);
+            this.pile.add(list);
         }
         this.fallingCubes = new ArrayList<Cube>(3);
+        dynamite = new ArrayList<Cube>(3);
 
 
         Timer timer = new Timer();
@@ -45,8 +51,29 @@ public class World {
             }
         },0,(int)(REFRESHINTERVAL * 1000));
     }
+    
+    public void setDynamite(ArrayList<Integer> list) {
+    	
+    	for (int i=list.size()-1; i>=0; i--) {
+    		int index = list.get(i);
+    		Cube cube = fallingCubes.get(index);
+    		fallingCubes.remove(index);
+    		cube.setIntoDynamite();
+    		dynamite.add(cube);
+    	}
+    }
+
+    public void resetDurationOfNonFallingCubes(){
+        this.durationOfNonFallingCubes = 0;
+    }
 
     private void refresh(){
+        if(fallingCubes.isEmpty()){
+            ++this.durationOfNonFallingCubes;
+            if(this.durationOfNonFallingCubes%3==0){
+                Controller.generateNewCube();
+            }
+        }
         for(Cube cube:fallingCubes) {
             cube.fallDown();
         }
@@ -57,9 +84,19 @@ public class World {
             // then add cube on the top of pile
             if(isPointCollideWithPile(cube.getLocation())) {
                 collisionCubes.add(cube);
-                this.pile.get(cube.getLocation().x).add(cube);
+                this.pile.get((int) cube.getLocation().x).add(cube);
             }
         }
+        
+        for (int i=0; i<dynamite.size(); i++) {
+        	
+        	Cube cube = dynamite.get(i);
+        	boolean disappear = cube.countdown();
+        	if (disappear)
+        		dynamite.remove(i);
+        	i--;
+        }
+        
         //then delete them
         this.fallingCubes.removeAll(collisionCubes);
         this.eliminateBottomLines();
@@ -86,6 +123,10 @@ public class World {
         return fallingCubes;
     }
 
+    public ArrayList<Cube> getDynamite() {
+        return dynamite;
+    }
+
     public int[] getTops() {
         int[] ret = new int[pile.size()];
         for(int i=0;i<pile.size();i++){
@@ -97,12 +138,13 @@ public class World {
     private static Comparator<Cube> cubeComparator = new Comparator<Cube>() {
         @Override
         public int compare(Cube o1, Cube o2) {
-            int o1Value = o1.getLocation().y + o1.getLocation().x * HEIGHT + o1.getLocation().z * HEIGHT * WIDTH;
-            int o2Value = o2.getLocation().y + o2.getLocation().x * HEIGHT + o2.getLocation().z * HEIGHT * WIDTH;
-            return o1Value - o2Value;
+            float o1Value = o1.getLocation().y + o1.getLocation().x * HEIGHT + o1.getLocation().z * HEIGHT * WIDTH;
+            float o2Value = o2.getLocation().y + o2.getLocation().x * HEIGHT + o2.getLocation().z * HEIGHT * WIDTH;
+            return (int)(o1Value - o2Value);
         }
     };
     public void generateNewCube(Point3D point) {
+
         if (point.x >= World.WIDTH || point.x < 0 ||
                 point.y >= World.HEIGHT || point.y < 0 ||
                 point.z != 0) {
@@ -122,7 +164,9 @@ public class World {
 
         //add the cube to fallingCube list
         this.fallingCubes.add(cube);
-        this.fallingCubes.sort(cubeComparator);
+        Collections.sort(this.fallingCubes, cubeComparator);
+
+        this.resetDurationOfNonFallingCubes();
     }
 
     private boolean isPointCollideWithFallingCubes(Point3D point) {
@@ -136,7 +180,7 @@ public class World {
         return false;
     }
     private boolean isPointCollideWithPile(Point3D point) {
-        return pile.get(point.x).size() >= point.y;
+        return pile.get((int) point.x).size() >= point.y;
     }
 
     public Vector<ArrayList<Cube>> getPile() {
@@ -145,11 +189,8 @@ public class World {
 
 
     static class InvalidPointException extends RuntimeException {
-        private Point3D point3D;
-
         public InvalidPointException(Point3D point3D) {
             super("Invalid point: (" + point3D.x + "," + point3D.y + "," + point3D.z + ")");
-            this.point3D = point3D;
         }
     }
 }

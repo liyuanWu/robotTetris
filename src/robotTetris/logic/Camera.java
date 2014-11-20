@@ -1,6 +1,6 @@
-package robotTetris.logic;
+package logic;
 
-import  robotTetris.basic.Point3D;
+import  basic.Point3D;
 
 /**
  * Created by leowoo on 2014/11/5.
@@ -12,7 +12,8 @@ public class Camera {
 	private static Camera self;
 	
     private final double BASIC_ROTATE_ANGLE = 2*Math.PI/360 * 2;
-    private final int RADIUS = 100;
+    private final int RADIUS = (int) (Cube.WIDTH * World.WIDTH * 0.6);
+    private final static int CAMERAHEIGHT = 50;
     
     private Point3D[] map;
     private int size;
@@ -40,7 +41,7 @@ public class Camera {
     		
     		int x = (int) (RADIUS * Math.cos(angle));
     		int y = (int) (RADIUS * Math.sin(angle));
-    		Point3D tmp = new Point3D(x, y, 0);
+    		Point3D tmp = new Point3D(x, y, Camera.CAMERAHEIGHT);
     		map[i] = tmp;
     		angle += BASIC_ROTATE_ANGLE;
     	}

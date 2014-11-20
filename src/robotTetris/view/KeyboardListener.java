@@ -1,9 +1,9 @@
-package robotTetris.view;
-
-import robotTetris.controller.Controller;
+package view;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+
+import controller.Controller;
 
 /*
  * Created by robin on 2014/11/11.
@@ -51,12 +51,12 @@ public class KeyboardListener extends KeyAdapter {
 			Controller.rotateRightHeadArm();
 			break;
 		}
-           case RELEASENEWCUBE : {
-                Controller.generateNewCube();
-               break;
-            }
+		case RELEASENEWCUBE : {
+			Controller.generateNewCube();
+			break;
+		}
 		}
 		
-		Frame.getInstance().repaint();
+		GLFrame.getInstance().repaint();
 	}
 }
