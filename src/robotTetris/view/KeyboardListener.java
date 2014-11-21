@@ -1,9 +1,10 @@
-package view;
+package robotTetris.view;
+
+import robotTetris.controller.Controller;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import controller.Controller;
 
 /*
  * Created by robin on 2014/11/11.

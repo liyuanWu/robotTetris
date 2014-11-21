@@ -1,9 +1,10 @@
-package logic;
+package robotTetris.logic;
 
-import java.awt.Rectangle;
+import robotTetris.basic.Point3D;
+
+import java.awt.*;
 import java.util.ArrayList;
 
-import basic.Point3D;
 
 /**
  * Created by leowoo on 2014/11/5.

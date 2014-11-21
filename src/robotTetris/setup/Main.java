@@ -1,8 +1,9 @@
-package setup;
+package robotTetris.setup;
 
-import view.GLFrame;
 
-public class Setup {
+import robotTetris.view.GLFrame;
+
+public class Main{
 
 	public static void main(String[] args) {
 		

@@ -1,13 +1,12 @@
-package view;
-
-import java.awt.Dimension;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import javax.media.opengl.awt.GLCanvas;
-import javax.swing.JFrame;
+package robotTetris.view;
 
 import com.jogamp.opengl.util.FPSAnimator;
+
+import javax.media.opengl.awt.GLCanvas;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class GLFrame extends JFrame {
 

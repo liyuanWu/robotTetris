@@ -1,6 +1,6 @@
-package logic;
+package robotTetris.logic;
 
-import basic.Point3D;
+import robotTetris.basic.Point3D;
 
 /**
  * Created by leowoo on 2014/11/5.

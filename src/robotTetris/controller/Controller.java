@@ -1,10 +1,10 @@
-package controller;
+package robotTetris.controller;
 
-import basic.Point3D;
-import logic.Arm;
-import logic.Camera;
-import logic.Cube;
-import logic.World;
+import robotTetris.basic.Point3D;
+import robotTetris.logic.Arm;
+import robotTetris.logic.Camera;
+import robotTetris.logic.Cube;
+import robotTetris.logic.World;
 
 import java.util.ArrayList;
 import java.util.Vector;

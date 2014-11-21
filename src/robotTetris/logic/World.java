@@ -1,7 +1,8 @@
-package logic;
+package robotTetris.logic;
 
-import basic.Point3D;
-import controller.Controller;
+
+import robotTetris.basic.Point3D;
+import robotTetris.controller.Controller;
 
 import java.util.*;
 

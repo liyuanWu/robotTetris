@@ -1,11 +1,11 @@
-package view;
+package robotTetris.view;
 
-import basic.Point3D;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureIO;
-import controller.Controller;
-import logic.Cube;
+import robotTetris.basic.Point3D;
+import robotTetris.controller.Controller;
+import robotTetris.logic.Cube;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
@@ -13,12 +13,14 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.glu.GLU;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Vector;
 
 import static javax.media.opengl.GL.*;
 import static javax.media.opengl.GL2.GL_COMPILE;
 import static javax.media.opengl.GL2.GL_QUADS;
+import static javax.media.opengl.GL2ES1.GL_LIGHT_MODEL_AMBIENT;
 import static javax.media.opengl.GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT;
 import static javax.media.opengl.fixedfunc.GLLightingFunc.*;
 import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_MODELVIEW;
@@ -35,6 +37,10 @@ public class GLListenner implements GLEventListener {
 	   private String textureFileName = "images/crate.png";
 	   private String textureFileType = ".png";
 
+    private Texture floorTexture; // texture over the shape
+    private String floorTextureFileName = "images/floor.jpg";
+    private String floorTextureFileType = ".jpg";
+
 	   // Texture image flips vertically. Shall use TextureCoords class to retrieve the
 	   // top, bottom, left and right coordinates.
 	   private float textureTop, textureBottom, textureLeft, textureRight;
@@ -46,6 +52,42 @@ public class GLListenner implements GLEventListener {
         gl.glCallList(boxDList);
         gl.glTranslatef(-cubeLocation.x * cubeWidth,-cubeLocation.y * cubeWidth,0);
     }
+
+    private void drawCube(Point3D p1, Point3D p2, Point3D p3, Point3D p4,Point3D p5, Point3D p6, Point3D p7, Point3D p8, GL2 gl){
+       Point3D[] pointArray = new Point3D[]{p1,p2,p3,p4,p5,p6,p7,p8};
+       final int index_list[][] = new int[][]{
+               {0, 1, 2, 3},
+               {4, 5, 6, 7},
+               {0, 1, 5, 4},
+               {0, 3, 7, 4},
+               {1, 2, 6, 5},
+               {2, 3, 7, 6}
+        };
+
+       for(int i=0;i<6;i++){
+           gl.glBegin(GL_QUADS);
+           gl.glVertex3d(pointArray[index_list[i][0]].x,pointArray[index_list[i][0]].y,pointArray[index_list[i][0]].z);
+           gl.glVertex3d(pointArray[index_list[i][1]].x,pointArray[index_list[i][1]].y,pointArray[index_list[i][1]].z);
+           gl.glVertex3d(pointArray[index_list[i][2]].x,pointArray[index_list[i][2]].y,pointArray[index_list[i][2]].z);
+           gl.glVertex3d(pointArray[index_list[i][3]].x,pointArray[index_list[i][3]].y,pointArray[index_list[i][3]].z);
+           gl.glEnd();
+       }
+
+    }
+    private void drawArm(Point3D armHead, Point3D armBase, float armWidth, GL2 gl){
+        float armLength = (float) Math.sqrt(Math.pow(armHead.x - armBase.x, 2) + Math.pow(armHead.y - armBase.y, 2));
+        float varX = armWidth * (armHead.y-armBase.y) / armLength;
+        float varY = armWidth * (armHead.x-armBase.x) / armLength;
+        Point3D p1 = new Point3D(armHead.x - varX,armHead.y + varY,armWidth);
+        Point3D p2 = new Point3D(armHead.x + varX,armHead.y - varY,armWidth);
+        Point3D p3 = new Point3D(armBase.x + varX,armBase.y - varY,armWidth);
+        Point3D p4 = new Point3D(armBase.x - varX,armBase.y + varY,armWidth);
+        Point3D p5 = new Point3D(armHead.x - varX,armHead.y + varY,-armWidth);
+        Point3D p6 = new Point3D(armHead.x + varX,armHead.y - varY,-armWidth);
+        Point3D p7 = new Point3D(armBase.x + varX,armBase.y - varY,-armWidth);
+        Point3D p8 = new Point3D(armBase.x - varX,armBase.y + varY,-armWidth);
+        this.drawCube(p1,p2,p3,p4,p5,p6,p7,p8,gl);
+    }
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		
@@ -53,10 +95,26 @@ public class GLListenner implements GLEventListener {
 	      gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 	      gl.glLoadIdentity();  // reset the model-view matrix
 
-          glu.gluLookAt(Controller.getCameraLocation().x,Controller.getCameraLocation().y,Controller.getCameraLocation().z,0,0,0,0,1,0);
+          float cameraX = Controller.getCameraLocation().x,cameraY = Controller.getCameraLocation().y;
+//          double cameraLength = Math.sqrt(cameraX * cameraX + cameraY * cameraY);
+//          double directionX = cameraX - cameraY/cameraLength;
+//          double directionY = cameraY + cameraX/cameraLength;
+          glu.gluLookAt(cameraX,cameraY,Controller.getCameraLocation().z,0,0,0,0,1,0);
 
+
+        gl.glBegin(GL_QUADS);
+        gl.glColor3f(1.0f,0.0f,0.0f);
+        gl.glVertex3f(-50, -1, 50);
+        gl.glColor3f(0.0f,1.0f,0.0f);
+        gl.glVertex3f( 50, -1, 50);
+        gl.glColor3f(0.0f,0.0f,1.0f);
+        gl.glVertex3f( 50, -1, -50);
+        gl.glColor3f(1.0f,1.0f,1.0f);
+        gl.glVertex3f(-50, -1, -50);
+        gl.glEnd();
 	      // Bind the texture to the current OpenGL graphics context.
 	      texture.bind(gl);
+
 
 
 	      Vector<ArrayList<Cube>> pile = Controller.getPile();
@@ -66,36 +124,23 @@ public class GLListenner implements GLEventListener {
               }
           }
 
+
 	      ArrayList<Cube> list = Controller.getFallingCubes();
           for(Cube cube:list){
             this.drawCube(cube,gl);
           }
 
+
+          gl.glColor3f(1f,1f,0f);
 	      ArrayList<Cube> dynamitingCubes = Controller.getDynamite();
           for(Cube cube: dynamitingCubes){
               this.drawCube(cube,gl);
           }
 
-	      Point3D mid = Controller.getArmMidLocation();
-	      Point3D head = Controller.getArmHeadLocation();
-
-	      gl.glBegin(GL_QUADS);
-	      gl.glColor3fv(new float[]{1.0f, 0.0f, 0.0f}, 0);
-	      gl.glVertex2fv(new float[]{-1, 0}, 0);
-	      gl.glVertex2fv(new float[]{mid.x-1, mid.y}, 0);
-	      gl.glVertex2fv(new float[]{mid.x, mid.y}, 0);
-	      gl.glVertex2fv(new float[]{0, 0}, 0);
-	      gl.glVertex2fv(new float[]{-1, 0}, 0);
-	      gl.glEnd();
-
-	      gl.glBegin(GL_QUADS);
-	      gl.glColor3fv(new float[]{0.0f, 1.0f, 1.0f}, 0);
-	      gl.glVertex2fv(new float[]{mid.x-1, mid.y}, 0);
-	      gl.glVertex2fv(new float[]{head.x-1, head.y}, 0);
-	      gl.glVertex2fv(new float[]{head.x, head.y}, 0);
-	      gl.glVertex2fv(new float[]{mid.x, mid.y}, 0);
-	      gl.glVertex2fv(new float[]{mid.x-1, mid.y}, 0);
-	      gl.glEnd();
+        gl.glColor3f(0f,1f,0f);
+        drawArm( Controller.getArmMidLocation(),new Point3D(0,0,0),(float)Controller.getArmWidth(),gl);
+        gl.glColor3f(0f,1f,1f);
+        drawArm( Controller.getArmHeadLocation(), Controller.getArmMidLocation(),(float)Controller.getArmWidth(),gl);
 	}
 
 	@Override
@@ -133,6 +178,8 @@ public class GLListenner implements GLEventListener {
 	         // Use URL so that can read from JAR and disk file.
 	         texture = TextureIO.newTexture(
 	               this.getClass().getResource(textureFileName), false, textureFileType);
+             floorTexture = TextureIO.newTexture(
+                      this.getClass().getResource(floorTextureFileName), false, floorTextureFileType);
 	      } catch (GLException e) {
 	         e.printStackTrace();
 	      } catch (IOException e) {
@@ -159,6 +206,19 @@ public class GLListenner implements GLEventListener {
 
 	      // Run the build lists after initializing the texture
 	      buildDisplayLists(gl);
+
+        // Diffuse light comes from a particular location. Diffuse's value in RGBA
+        float[] lightDiffuseValue = {1.0f, 1.0f, 1.0f, 1.0f};
+        // Diffuse light location xyz (in front of the screen).
+        float lightDiffusePosition[] = {0.0f, 0.0f, 2.0f, 1.0f};
+
+        float Light_Model_Ambient[] = { 0.6f , 0.6f , 0.6f , 1.0f }; // ȱʡֵ
+
+        gl.glLightModelfv(GL_LIGHT_MODEL_AMBIENT, FloatBuffer.wrap(Light_Model_Ambient));
+        gl.glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDiffuseValue, 0);
+        gl.glLightfv(GL_LIGHT1, GL_POSITION, lightDiffusePosition, 0);
+        gl.glEnable(GL_LIGHT1);    // Enable Light-1
+        gl.glEnable(GL_LIGHTING); // But disable lighting
 	}
 
 	@Override
